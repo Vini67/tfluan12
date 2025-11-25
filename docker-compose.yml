@@ -1,0 +1,169 @@
+services:
+
+
+  #NODE VITE HMR
+  nodevitehmr-container:
+    build:
+      context: .
+      dockerfile: docker/node24-vite-hmr/Dockerfile
+    volumes:
+      - ./resources:/app/resources
+      - nodemodules-project-volume:/app/node_modules
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    networks:
+      - app-network
+
+  
+  #NODE VITE COMPILER
+  nodevitecompiler-container:
+    build:
+      context: .
+      dockerfile: docker/node24-vite-compiler/Dockerfile
+    volumes:
+      - public-build-project-volume:/app/public/build
+      - ./resources:/app/resources
+      - nodemodules-project-volume:/app/node_modules
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  #NODE WEB
+  nodeweb-container:
+    build:
+      context: .
+      dockerfile: docker/node24-web/Dockerfile.dev
+    env_file: 
+      - .env
+      - .env.docker
+    volumes:
+      - .:/app
+      - nodemodules-project-volume:/app/node_modules
+    restart: unless-stopped
+    depends_on:
+      - postgres-container
+      - rabbitmq-container
+    networks:
+      app-network:
+        aliases:
+            - nodeweb_host
+
+  #NODE CLI
+  nodecli-container:
+    build:
+      context: .
+      dockerfile: docker/node24-cli/Dockerfile
+    env_file:
+      - .env
+      - .env.docker
+    volumes:
+      - .:/app
+      - nodemodules-project-volume:/app/node_modules
+    networks:
+      - app-network
+    depends_on:
+      - postgres-container
+      - rabbitmq-container
+
+  #NODE WORKER
+  nodeworker-container:
+    build:
+      context: .
+      dockerfile: docker/node24-worker/Dockerfile.dev
+    env_file:
+      - .env
+      - .env.docker
+    volumes:
+      - .:/app
+      - nodemodules-project-volume:/app/node_modules
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      - postgres-container
+      - rabbitmq-container
+
+  #NODE WEBSOCKET
+  nodewebsocket-container:
+    build:
+      context: .
+      dockerfile: docker/node24-websocket/Dockerfile.dev
+    env_file:
+      - .env
+      - .env.docker
+    volumes:
+      - .:/app
+      - nodemodules-project-volume:/app/node_modules
+    ports:
+      - "8081:8081"
+      - "3001:3001"
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      - postgres-container
+      - rabbitmq-container
+
+  #NGINX
+  nginx-container:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/public
+      - public-build-project-volume:/var/www/public/build
+    depends_on:
+      - nodeweb-container
+    networks:
+      - app-network
+
+  #POSTGRES
+  postgres-container:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: America/Sao_Paulo
+    ports:
+      - "6789:5432"
+    volumes:
+      - pgdata-project-volume:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      app-network:
+        aliases:
+            - postgres_host
+
+    #RABBITMQ
+  rabbitmq-container:
+    image: rabbitmq:3.13.1-management-alpine
+    ports:
+      - "5672:5672"    # Porta para conexão com a fila (producers/consumers)
+      - "15672:15672"              # Porta do painel de gerenciamento web
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    networks:
+      app-network:
+        aliases:
+          - rabbitmq_host
+
+
+#OTHERS
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata-project-volume:
+  nodemodules-project-volume:
+  public-build-project-volume:
+  rabbitmq-volume:

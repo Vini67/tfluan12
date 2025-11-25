@@ -1,0 +1,43 @@
+{
+  "name": "unifaat-devweb-base-project",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node _server.js",
+    "dev": "nodemon _server.js",
+    "watch": "vite build --watch"
+  },
+  "type": "module",
+  "author": "Luan Tavares",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
+    "chalk": "^5.4.1",
+    "cli-table3": "^0.6.5",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "ejs-mate": "^4.0.0",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "minimist": "^1.2.8",
+    "pg": "^8.15.6",
+    "sequelize": "^6.37.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "bootstrap": "^5.3.8",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  }
+}
